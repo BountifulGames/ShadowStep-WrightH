@@ -25,7 +25,7 @@ public class EnemyAI : MonoBehaviour
     }
     void Update()
     {
-        
+        StateChange();
     }
 
     private void StateChange()
