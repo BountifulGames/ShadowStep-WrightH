@@ -14,7 +14,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private float moveSpeed = 3f;
     [SerializeField] private float jumpHeight = 2f;
-    [SerializeField] private float standHeight = 1.75718f;
+    [SerializeField] private float standHeight = 1.82012f;
     [SerializeField] private float crouchHeight = 1f;
 
     private CharacterController characterController;
@@ -128,7 +128,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void CheckDance()
     {
-        if (isGrounded && Input.GetKeyDown(KeyCode.F))
+        if (Input.GetKeyDown(KeyCode.F))
         {
             animator.SetTrigger("Dance");
         }

@@ -51,7 +51,7 @@ public class EnemyAI : MonoBehaviour
 
     private void Patrol()
     {
-        Debug.Log("Patroling");
+        //Debug.Log("Patroling");
         enemyController.MoveTo(waypoints[currentWaypoint].position, patrolSpeed);
         if (Vector3.Distance(gameObject.transform.position, waypoints[currentWaypoint].position) < 1.0f)
         {
@@ -63,7 +63,7 @@ public class EnemyAI : MonoBehaviour
     private void Chase()
     {
         StopCoroutine(PerformInvestigation());
-        Debug.Log("Chasing");
+        //Debug.Log("Chasing");
         enemyController.MoveTo(playerPos.position, chaseSpeed);
         if (Vector3.Distance(gameObject.transform.position, playerPos.position) > sightDistance || !CanSeePlayer())
         {
@@ -75,11 +75,11 @@ public class EnemyAI : MonoBehaviour
     private void Investigate()
     {
         //Debug.Log("Investigating");
-        Debug.Log("Last known location " + lastKnownLocation.ToString());
+        //Debug.Log("Last known location " + lastKnownLocation.ToString());
         enemyController.MoveTo(lastKnownLocation, patrolSpeed);
         if (Vector3.Distance(gameObject.transform.position, lastKnownLocation) <= 1.5f && !isInvestigating)
         {
-            Debug.Log("Beginning investigation");
+            //Debug.Log("Beginning investigation");
             StartCoroutine(PerformInvestigation());
         }
     }
@@ -87,26 +87,33 @@ public class EnemyAI : MonoBehaviour
     private bool CanSeePlayer()
     {
         float playerHeight = characterController.height;
-        Vector3 eyeLevel = transform.position + transform.up * 1.1f; // Eye level of the enemy
-        Vector3 targetPosition = playerPos.position + Vector3.up * (playerHeight * 0.8f); // Target near the top of player's collider
+        Vector3 eyeLevel = transform.position + transform.up * 0.8f; // Adjust this value to set the AI's eye level.
+        Vector3 targetPosition = playerPos.position; // Targets near the top of the player's collider.
         Vector3 directionToPlayer = targetPosition - eyeLevel;
 
-        Debug.Log($"Eye Level: {eyeLevel}, Target Position: {targetPosition}, Direction: {directionToPlayer}");
-
         float playerAngle = Vector3.Angle(directionToPlayer, transform.forward);
-        Debug.Log($"Player Angle: {playerAngle}, FOV Half-Angle: {fieldOfViewAngle * 0.5f}");
 
-        if (playerAngle < fieldOfViewAngle * 0.5f)
+        if (playerAngle < fieldOfViewAngle * 0.5f) // Check if player is within the field of view angle
         {
             RaycastHit hit;
             if (Physics.Raycast(eyeLevel, directionToPlayer.normalized, out hit, sightDistance))
             {
                 Debug.DrawRay(eyeLevel, directionToPlayer.normalized * sightDistance, hit.transform == playerPos ? Color.green : Color.red);
-                Debug.Log("Raycast hit: " + hit.collider.name);
-                return hit.transform == playerPos;
+
+                // Here's where we handle the conditional logic based on what the raycast hits
+                if (hit.transform == playerPos)
+                {
+                    //Debug.Log("Player detected.");
+                    return true; // Player is directly seen
+                }
+                else
+                {
+                    //Debug.Log($"Vision blocked by {hit.collider.name}");
+                    return false; // Something else was hit, or the ray didn't hit anything meaningful
+                }
             }
         }
-        return false;
+        return false; // Player is not in the field of view or raycast did not hit anything
     }
 
     private void LookForPlayer()
@@ -144,5 +151,6 @@ public class EnemyAI : MonoBehaviour
             Gizmos.color = Color.red;
             Gizmos.DrawLine(transform.position, playerPos.position);
         }
+
     }
 }
