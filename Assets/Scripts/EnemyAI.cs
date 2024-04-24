@@ -15,6 +15,7 @@ public class EnemyAI : MonoBehaviour
     private EnemyController enemyController;
     private int currentWaypoint = 0;
     private bool isInvestigating = false;
+    [SerializeField] private CharacterController characterController;
     
     private enum EnemyState { Patrolling, Chasing, Investigating }
     private EnemyState enemyState;
@@ -26,8 +27,9 @@ public class EnemyAI : MonoBehaviour
     }
     void Update()
     {
-        StateChange();
         LookForPlayer();
+
+        StateChange();
 
     }
 
@@ -84,16 +86,23 @@ public class EnemyAI : MonoBehaviour
 
     private bool CanSeePlayer()
     {
-        Vector3 playerDirection = playerPos.position - gameObject.transform.position;
-        float playerAngle = Vector3.Angle(playerDirection, transform.forward);
+        float playerHeight = characterController.height;
+        Vector3 eyeLevel = transform.position + transform.up * 1.1f; // Eye level of the enemy
+        Vector3 targetPosition = playerPos.position + Vector3.up * (playerHeight * 0.8f); // Target near the top of player's collider
+        Vector3 directionToPlayer = targetPosition - eyeLevel;
+
+        Debug.Log($"Eye Level: {eyeLevel}, Target Position: {targetPosition}, Direction: {directionToPlayer}");
+
+        float playerAngle = Vector3.Angle(directionToPlayer, transform.forward);
+        Debug.Log($"Player Angle: {playerAngle}, FOV Half-Angle: {fieldOfViewAngle * 0.5f}");
+
         if (playerAngle < fieldOfViewAngle * 0.5f)
         {
             RaycastHit hit;
-            if (Physics.Raycast(transform.position + transform.up, playerDirection.normalized, out hit, sightDistance))
+            if (Physics.Raycast(eyeLevel, directionToPlayer.normalized, out hit, sightDistance))
             {
-                Debug.DrawRay(transform.position, playerDirection.normalized, Color.red);
-
-                Debug.Log("Raycast Hit " + hit.collider.name);
+                Debug.DrawRay(eyeLevel, directionToPlayer.normalized * sightDistance, hit.transform == playerPos ? Color.green : Color.red);
+                Debug.Log("Raycast hit: " + hit.collider.name);
                 return hit.transform == playerPos;
             }
         }
