@@ -14,6 +14,9 @@ using UnityEngine;
 public class RaycastController : MonoBehaviour
 {
     RaycastHit hit;
+    GameObject securityCam;
+    private bool isMainCamera;
+
 
     // Start is called before the first frame update
     void Start()
@@ -31,6 +34,36 @@ public class RaycastController : MonoBehaviour
             //DoorToggle();
 
         }
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            ChangeCamera();
+        }
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            Debug.Log("Got to Keycode.Q");
+            if (!isMainCamera)
+            {
+                Debug.Log("Got to here");
+                securityCam.GetComponent<Camera>().enabled = false;
+                gameObject.GetComponent<Camera>().enabled = true;
+                isMainCamera = true;
+            }
+        }
+    }
+
+    public void ChangeCamera()
+    {
+        if (Physics.Raycast(transform.position, transform.forward, out hit))
+        {
+            if (hit.collider.CompareTag("Camera"))
+            {
+                securityCam = hit.collider.transform.GetChild(0).gameObject;
+                securityCam.GetComponent<Camera>().enabled = true;
+                gameObject.GetComponent<Camera>().enabled = false;
+                isMainCamera = false;
+            }
+        }
     }
 
     //private void DoorToggle()
@@ -44,7 +77,7 @@ public class RaycastController : MonoBehaviour
     //            GameObject door = hit.collider.gameObject;
 
     //            //door.GetComponentInParent<DoorController>().ToggleDoor();
-                
+
     //        }
     //    }
 
