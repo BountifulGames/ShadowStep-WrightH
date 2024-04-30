@@ -20,8 +20,12 @@ public class EnemyAI : MonoBehaviour
     private float detectionMeter = 0f;
     private float detectionMax = 100f;
     private int detectCount = 0;
-    private float nextRaycast = 0f;
     private float lastDetectionMeterValue = -1;
+    private Animator animator;
+    [SerializeField] private bool isWalking;
+    private bool isChasing = false;
+
+    [SerializeField] private bool isAlert = false;
 
     private Vector3 lastKnownLocation;
     private EnemyController enemyController;
@@ -34,6 +38,9 @@ public class EnemyAI : MonoBehaviour
 
     private void Awake()
     {
+        animator = GetComponentInChildren<Animator>();
+        playerPos = GameObject.FindGameObjectWithTag("Player").transform;
+        characterController = playerPos.gameObject.GetComponent<CharacterController>();
         enemyController = GetComponent<EnemyController>();
         enemyState = EnemyState.Patrolling;
     }
@@ -49,6 +56,20 @@ public class EnemyAI : MonoBehaviour
         if (detectionMeter > 0 && !CanSeePlayer())
         {
             detectionMeter -= decreaseRate * Time.deltaTime;
+
+            if (detectionMeter <= 0)
+            {
+                isAlert = false;
+            }
+        }
+
+        if (isWalking)
+        {
+            animator.SetBool("isWalking", isWalking);
+        }
+        if (!isWalking)
+        {
+            animator.SetBool("isWalking", isWalking);
         }
 
     }
@@ -73,8 +94,11 @@ public class EnemyAI : MonoBehaviour
     {
         //Debug.Log("Patroling");
         enemyController.MoveTo(waypoints[currentWaypoint].position, patrolSpeed);
+        isWalking = true;
         if (Vector3.Distance(gameObject.transform.position, waypoints[currentWaypoint].position) < 1.0f)
         {
+            isWalking = false;
+
             currentWaypoint = (currentWaypoint + 1) % waypoints.Length;
         }
 
@@ -88,6 +112,7 @@ public class EnemyAI : MonoBehaviour
         if (Vector3.Distance(gameObject.transform.position, playerPos.position) > sightDistance || !CanSeePlayer())
         {
             lastKnownLocation = playerPos.position;
+            isChasing = false;
             enemyState = EnemyState.Investigating;
         }
     }
@@ -100,6 +125,7 @@ public class EnemyAI : MonoBehaviour
         if (Vector3.Distance(gameObject.transform.position, lastKnownLocation) <= 1.5f && !isInvestigating)
         {
             //Debug.Log("Beginning investigation");
+            isWalking = false;
             StartCoroutine(PerformInvestigation());
         }
     }
@@ -117,7 +143,6 @@ public class EnemyAI : MonoBehaviour
         Vector3 directionToPlayer = targetPosition - eyeLevel;
 
         float playerAngle = Vector3.Angle(directionToPlayer, transform.forward);
-        nextRaycast = Time.deltaTime + raycastInterval;
         if (playerAngle < fieldOfViewAngle * 0.5f) 
         {
             RaycastHit hit;
@@ -169,20 +194,38 @@ public class EnemyAI : MonoBehaviour
         if (CanSeePlayer() && Vector3.Distance(playerPos.position, gameObject.transform.position) < sightDistance)
         {
             detectionMeter += detectionRate * Time.deltaTime;
-            if (detectionMeter > detectionMax)
+            detectionMeter = Mathf.Clamp(detectionMeter, 0, detectionMax);
+            if (detectionMeter >= detectionMax && !isChasing)
             {
                 detectCount++;
-                //detectionMeter = 0;
+                isChasing = true;
                 lastKnownLocation = playerPos.position;
                 enemyState = EnemyState.Chasing;
 
                 if (detectCount >= 3)
                 {
                     //Game over script
+                    Debug.Log("Game over");
                 }
             }
         }
 
+    }
+
+    private void ToggleAlert()
+    {
+        if (!isAlert)
+        {
+            isAlert = !isAlert;
+            sightDistance = sightDistance * 1.5f;
+            fieldOfViewAngle = fieldOfViewAngle + 20f;
+        }
+        else if (isAlert)
+        {
+            isAlert = !isAlert;
+            sightDistance = sightDistance / 1.5f;
+            fieldOfViewAngle = fieldOfViewAngle - 20f;
+        }
     }
 
     private IEnumerator PerformInvestigation()

@@ -9,7 +9,7 @@ public class PickupObject : MonoBehaviour
     [SerializeField] private Transform player;
 
     public bool isHeld = false;
-    private bool hasLanded = false;
+    private bool hasLanded = true;
     private Rigidbody rb;
 
     
