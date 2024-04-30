@@ -1,15 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class EnemyAI : MonoBehaviour
 {
     [SerializeField] private Transform[] waypoints;
+    [SerializeField] private Slider detectionMeterSlider;
+    [SerializeField] private Canvas enemyCanvas;
     [SerializeField] private float chaseSpeed = 5.0f;
     [SerializeField] private float patrolSpeed = 2.0f;
     [SerializeField] private float sightDistance = 10.0f;
     [SerializeField] private float fieldOfViewAngle = 90f;
+    [SerializeField] private float detectionRate = 20f;
+    [SerializeField] private float decreaseRate = 5f;
+    [SerializeField] private float raycastInterval = 0.01f;
     [SerializeField] private Transform playerPos;
+
+    private float detectionMeter = 0f;
+    private float detectionMax = 100f;
+    private int detectCount = 0;
+    private float nextRaycast = 0f;
+    private float lastDetectionMeterValue = -1;
 
     private Vector3 lastKnownLocation;
     private EnemyController enemyController;
@@ -27,9 +39,12 @@ public class EnemyAI : MonoBehaviour
     }
     void Update()
     {
+
         LookForPlayer();
 
         StateChange();
+
+        UpdateDetectionUI();
 
     }
 
@@ -84,44 +99,90 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    public void InvestigateNoise(Vector3 noisePosition)
+    {
+        lastKnownLocation = noisePosition; // Set the noise position as the last sighting
+        enemyState = EnemyState.Investigating;
+    }
     private bool CanSeePlayer()
     {
         float playerHeight = characterController.height;
-        Vector3 eyeLevel = transform.position + transform.up * 0.8f; // Adjust this value to set the AI's eye level.
-        Vector3 targetPosition = playerPos.position; // Targets near the top of the player's collider.
+        Vector3 eyeLevel = transform.position + transform.up * 0.8f; 
+        Vector3 targetPosition = playerPos.position + transform.up * 0.3f;
         Vector3 directionToPlayer = targetPosition - eyeLevel;
 
         float playerAngle = Vector3.Angle(directionToPlayer, transform.forward);
-
-        if (playerAngle < fieldOfViewAngle * 0.5f) // Check if player is within the field of view angle
+        nextRaycast = Time.deltaTime + raycastInterval;
+        if (playerAngle < fieldOfViewAngle * 0.5f) 
         {
             RaycastHit hit;
             if (Physics.Raycast(eyeLevel, directionToPlayer.normalized, out hit, sightDistance))
             {
                 Debug.DrawRay(eyeLevel, directionToPlayer.normalized * sightDistance, hit.transform == playerPos ? Color.green : Color.red);
-
-                // Here's where we handle the conditional logic based on what the raycast hits
                 if (hit.transform == playerPos)
                 {
-                    //Debug.Log("Player detected.");
-                    return true; // Player is directly seen
+                    return true;
                 }
                 else
                 {
-                    //Debug.Log($"Vision blocked by {hit.collider.name}");
-                    return false; // Something else was hit, or the ray didn't hit anything meaningful
+                    return false;
                 }
             }
         }
-        return false; // Player is not in the field of view or raycast did not hit anything
+        return false; 
+    }
+
+    private void UpdateDetectionUI()
+    {
+        if (detectionMeter != lastDetectionMeterValue)
+        {
+            if (detectionMeterSlider != null)
+            {
+                if (detectionMeter >= 0)
+                {
+                    detectionMeterSlider.gameObject.SetActive(true);
+
+                    detectionMeterSlider.value = detectionMeter;
+
+                    detectionMeterSlider.fillRect.GetComponent<Image>().color = Color.Lerp(Color.green, Color.red, detectionMeter / detectionMax);
+                }
+                else
+                {
+                    detectionMeterSlider.gameObject.SetActive(false);
+                }
+
+            }
+            lastDetectionMeterValue = detectionMeter;
+        }
+
+
+        enemyCanvas.transform.LookAt(playerPos.position);
     }
 
     private void LookForPlayer()
     {
         if (CanSeePlayer() && Vector3.Distance(playerPos.position, gameObject.transform.position) < sightDistance)
         {
-            lastKnownLocation = playerPos.position;
-            enemyState = EnemyState.Chasing;
+            detectionMeter += detectionRate * Time.deltaTime;
+            if (detectionMeter > detectionMax)
+            {
+                detectCount++;
+                //detectionMeter = 0;
+                lastKnownLocation = playerPos.position;
+                enemyState = EnemyState.Chasing;
+
+                if (detectCount >= 3)
+                {
+                    //Game over script
+                }
+            }
+        }
+        else
+        {
+            if (detectionMeter > 0)
+            {
+                detectionMeter -= decreaseRate * Time.deltaTime;
+            }
         }
     }
 

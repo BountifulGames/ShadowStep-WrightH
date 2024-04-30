@@ -1,21 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-//////////////////////////////////////////////
-//Assignment/Lab/Project: Animations
-//Name: Hunter Wright
-//Section: SGD.213.2172
-//Instructor: Brian Sowers
-//Date: 4/15/2024
-/////////////////////////////////////////////
-
+using UnityEngine.UI;
 
 public class RaycastController : MonoBehaviour
 {
     RaycastHit hit;
-    GameObject securityCam;
-    private bool isMainCamera;
+    [SerializeField] private GameObject securityCam;
+    [SerializeField] private Slider cameraSlider;
+    [SerializeField] private float hackingRate = 20f;
+    private bool isMainCamera = true;
+    private float hackingPercent = 0f;
+    private Coroutine hackingCoroutine;
+
+
 
 
     // Start is called before the first frame update
@@ -35,35 +33,74 @@ public class RaycastController : MonoBehaviour
 
         }
 
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && isMainCamera)
         {
             ChangeCamera();
         }
-        if (Input.GetKeyDown(KeyCode.Q))
+        if (Input.GetKeyDown(KeyCode.Q) && !isMainCamera)
         {
-            Debug.Log("Got to Keycode.Q");
-            if (!isMainCamera)
-            {
-                Debug.Log("Got to here");
-                securityCam.GetComponent<Camera>().enabled = false;
-                gameObject.GetComponent<Camera>().enabled = true;
-                isMainCamera = true;
-            }
+            StopCoroutine(hackingCoroutine);
+            ResetToMainCamera();
         }
     }
 
     public void ChangeCamera()
     {
-        if (Physics.Raycast(transform.position, transform.forward, out hit))
+        if (Physics.Raycast(transform.position, transform.forward, out hit, 10f))
         {
             if (hit.collider.CompareTag("Camera"))
+            {
+                if (hackingCoroutine != null)
+                {
+                    StopCoroutine(hackingCoroutine);
+                }
+                hackingCoroutine = StartCoroutine(StartHacking(hit));
+
+            }
+        }
+    }
+
+    private void ResetToMainCamera()
+    {
+        if (securityCam != null)
+        {
+            securityCam.GetComponent<Camera>().enabled = false;
+        }
+        gameObject.GetComponent<Camera>().enabled = true;
+        isMainCamera = true;
+
+        if (hackingCoroutine != null)
+        {
+            StopCoroutine (hackingCoroutine);
+            hackingCoroutine = null;
+        }
+        hackingPercent = 0f;
+        cameraSlider.gameObject.SetActive(false);
+    }
+
+    private IEnumerator StartHacking(RaycastHit hit)
+    {
+        isMainCamera = false;
+
+        hackingPercent = 0f;
+        cameraSlider.gameObject.SetActive(true);
+        while (hackingPercent < 100f)
+        {
+            hackingPercent += hackingRate * Time.deltaTime;
+            hackingPercent = Mathf.Clamp(hackingPercent, 0, 101f);
+            cameraSlider.value = hackingPercent;
+            Debug.Log("Hacking Percent: " + hackingPercent);
+            if (hackingPercent >= 100f)
             {
                 securityCam = hit.collider.transform.GetChild(0).gameObject;
                 securityCam.GetComponent<Camera>().enabled = true;
                 gameObject.GetComponent<Camera>().enabled = false;
-                isMainCamera = false;
+                cameraSlider.gameObject.SetActive(false);
+                yield break;
             }
+            yield return null;
         }
+        
     }
 
     //private void DoorToggle()

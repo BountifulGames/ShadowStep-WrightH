@@ -5,9 +5,11 @@ using UnityEngine;
 public class PickupObject : MonoBehaviour
 {
     [SerializeField] private float throwForce = 600f;
+    [SerializeField] private float noiseRadius = 10f;
     [SerializeField] private Transform player;
 
     public bool isHeld = false;
+    private bool hasLanded = false;
     private Rigidbody rb;
 
     
@@ -36,21 +38,44 @@ public class PickupObject : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if (!isHeld)
+        if (!isHeld && Vector3.Distance(player.position, transform.position) < 5f)
         {
             rb.isKinematic = true;
             transform.SetParent(player);
             transform.localPosition = Vector3.zero + Vector3.forward;
             isHeld = true;
+            hasLanded = false;
+
         }
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (isHeld)
+        if (!hasLanded)
         {
-            isHeld = false;
-            
+            Debug.Log("Object landed");
+            hasLanded = true;
+            NotifyEnemies();
         }
+    }
+
+    private void NotifyEnemies()
+    {
+        Collider[] enemyColliders = Physics.OverlapSphere(transform.position, noiseRadius);
+        foreach (Collider collider in enemyColliders)
+        {
+            Debug.Log("Collider found:" + collider.name);
+            if (collider.CompareTag("Enemy"))
+            {
+                EnemyAI enemy = collider.GetComponent<EnemyAI>();
+                enemy.InvestigateNoise(transform.position);
+            }
+        }
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireSphere(transform.position, noiseRadius);
     }
 }
