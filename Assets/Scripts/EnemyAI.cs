@@ -46,6 +46,11 @@ public class EnemyAI : MonoBehaviour
 
         UpdateDetectionUI();
 
+        if (detectionMeter > 0 && !CanSeePlayer())
+        {
+            detectionMeter -= decreaseRate * Time.deltaTime;
+        }
+
     }
 
     private void StateChange()
@@ -177,13 +182,7 @@ public class EnemyAI : MonoBehaviour
                 }
             }
         }
-        else
-        {
-            if (detectionMeter > 0)
-            {
-                detectionMeter -= decreaseRate * Time.deltaTime;
-            }
-        }
+
     }
 
     private IEnumerator PerformInvestigation()
