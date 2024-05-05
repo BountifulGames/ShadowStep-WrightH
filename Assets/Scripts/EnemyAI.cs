@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -72,6 +73,9 @@ public class EnemyAI : MonoBehaviour
             animator.SetBool("isWalking", isWalking);
         }
 
+        //Debug.Log("Current Waypoint: " + currentWaypoint +
+            //"\nDistance to waypoint: " + Vector3.Distance(transform.position, waypoints[currentWaypoint].position));
+
     }
 
     private void StateChange()
@@ -115,6 +119,11 @@ public class EnemyAI : MonoBehaviour
             isChasing = false;
             enemyState = EnemyState.Investigating;
         }
+
+        if (Vector3.Distance(gameObject.transform.position, playerPos.position) < 1.0f)
+        {
+            GameManager.Instance.GameOver();
+        }
     }
 
     private void Investigate()
@@ -135,6 +144,8 @@ public class EnemyAI : MonoBehaviour
         lastKnownLocation = noisePosition; // Set the noise position as the last sighting
         enemyState = EnemyState.Investigating;
     }
+
+    
     private bool CanSeePlayer()
     {
         float playerHeight = characterController.height;
@@ -197,17 +208,37 @@ public class EnemyAI : MonoBehaviour
             detectionMeter = Mathf.Clamp(detectionMeter, 0, detectionMax);
             if (detectionMeter >= detectionMax && !isChasing)
             {
-                detectCount++;
+                GameManager.Instance.IncreaseDetect();
                 isChasing = true;
                 lastKnownLocation = playerPos.position;
                 enemyState = EnemyState.Chasing;
 
-                if (detectCount >= 3)
-                {
-                    //Game over script
-                    Debug.Log("Game over");
-                }
             }
+        }
+
+    }
+
+    public void IncreaseAlert(int alertLevel)
+    {
+        switch (alertLevel)
+        {
+            case 1:
+                sightDistance = 5.0f;  
+                chaseSpeed = 3.0f;
+                detectionRate = 1.5f;
+                break;
+            case 2:
+                sightDistance = 10.0f;  
+                chaseSpeed = 4.0f;
+                detectionRate = 2.0f;
+                break;
+            case 3:
+                sightDistance = 15.0f;
+                detectionRate = 2.5f;
+                break;
+            default:
+                Debug.Log("Unsupported alert level!");
+                break;
         }
 
     }

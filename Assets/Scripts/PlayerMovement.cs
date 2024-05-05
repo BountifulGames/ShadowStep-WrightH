@@ -25,6 +25,9 @@ public class PlayerMovement : MonoBehaviour
     private float vertVelocity = 0;
     private bool isCrouched = false;
 
+    public static bool canMove = true;
+
+
 
     // Start is called before the first frame update
     void Start()
@@ -44,9 +47,12 @@ public class PlayerMovement : MonoBehaviour
     {
         
         RotateCamera();
-        CheckDance();
-        UpdateMovement();
-        CheckCrouch();
+        //CheckDance();
+        if (canMove)
+        {
+            UpdateMovement();
+            CheckCrouch();
+        }
 
     }
 

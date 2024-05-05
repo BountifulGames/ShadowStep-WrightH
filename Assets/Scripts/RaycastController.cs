@@ -19,7 +19,6 @@ public class RaycastController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
     }
 
     // Update is called once per frame
@@ -40,7 +39,18 @@ public class RaycastController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Q) && !isMainCamera)
         {
             StopCoroutine(hackingCoroutine);
+            GameManager.Instance.StopHacking();
             ResetToMainCamera();
+        }
+
+        if (Input.GetKeyDown(KeyCode.J))
+        {
+            GameManager.Instance.IncreaseDetect();
+        }
+
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            Debug.Log("has keycard: " + GameManager.Instance.HasKeycard);
         }
     }
 
@@ -81,7 +91,7 @@ public class RaycastController : MonoBehaviour
     private IEnumerator StartHacking(RaycastHit hit)
     {
         isMainCamera = false;
-
+        GameManager.Instance.StartHacking();
         hackingPercent = 0f;
         cameraSlider.gameObject.SetActive(true);
         while (hackingPercent < 100f)
@@ -89,9 +99,11 @@ public class RaycastController : MonoBehaviour
             hackingPercent += hackingRate * Time.deltaTime;
             hackingPercent = Mathf.Clamp(hackingPercent, 0, 101f);
             cameraSlider.value = hackingPercent;
+
             Debug.Log("Hacking Percent: " + hackingPercent);
             if (hackingPercent >= 100f)
             {
+                GameManager.Instance.StopHacking();
                 securityCam = hit.collider.transform.GetChild(0).gameObject;
                 securityCam.GetComponent<Camera>().enabled = true;
                 gameObject.GetComponent<Camera>().enabled = false;

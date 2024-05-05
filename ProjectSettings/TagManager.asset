@@ -6,6 +6,9 @@ TagManager:
   tags:
   - Camera
   - Enemy
+  - Door
+  - EndDoor
+  - Keycard
   layers:
   - Default
   - TransparentFX
