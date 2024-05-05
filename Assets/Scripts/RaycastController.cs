@@ -52,6 +52,11 @@ public class RaycastController : MonoBehaviour
         {
             Debug.Log("has keycard: " + GameManager.Instance.HasKeycard);
         }
+
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            GameManager.Instance.CompleteLevel();
+        }
     }
 
     public void ChangeCamera()

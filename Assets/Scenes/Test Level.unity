@@ -273,12 +273,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 163973890}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -101.17209, y: 29.20164, z: -7.519384}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 248289450}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &248289449
 GameObject:
@@ -311,6 +311,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1606662605}
+  - {fileID: 163973893}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &248289451
@@ -327,10 +328,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isHacking: 0
   detectCount: 0
+  fadeSpeed: 0.5
   detectCountMax: 5
   gameOverScreen: {fileID: 922976017}
   levelEndScreen: {fileID: 0}
   alertLevelText: {fileID: 1577891050}
+  fadeScreen: {fileID: 0}
 --- !u!43 &305041375
 Mesh:
   m_ObjectHideFlags: 0
@@ -3653,6 +3656,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8369433093126723831}
     - target: {fileID: 7250779347311385833, guid: 676ead63e9cbe74469dfa2b684545a9b, type: 3}
+      propertyPath: detectionRate
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 7250779347311385833, guid: 676ead63e9cbe74469dfa2b684545a9b, type: 3}
       propertyPath: characterController
       value: 
       objectReference: {fileID: 1662332533}
@@ -5638,7 +5645,7 @@ PrefabInstance:
     - target: {fileID: 530828314340583459, guid: 95b6a05eec8286149ba93b2aa9a27e6a, type: 3}
       propertyPath: cameraSlider
       value: 
-      objectReference: {fileID: 51425486}
+      objectReference: {fileID: 0}
     - target: {fileID: 3166180169739174302, guid: 95b6a05eec8286149ba93b2aa9a27e6a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.25
@@ -5835,7 +5842,6 @@ SceneRoots:
   - {fileID: 500518754}
   - {fileID: 542165460}
   - {fileID: 7199338752440913402}
-  - {fileID: 163973893}
   - {fileID: 4618298355092807140}
   - {fileID: 1189974109}
   - {fileID: 248289450}

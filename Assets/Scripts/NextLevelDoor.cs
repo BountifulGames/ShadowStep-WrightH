@@ -21,7 +21,8 @@ public class NextLevelDoor : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if (GameManager.Instance.HasKeycard && Vector3.Distance(transform.position, player.position) < 3f)
+        //Debug.Log("DoorClicked");
+        if (GameManager.Instance.HasKeycard && Vector3.Distance(transform.position, player.position) < 5f)
         {
             Debug.Log("Door Clicked");
             GameManager.Instance.CompleteLevel();

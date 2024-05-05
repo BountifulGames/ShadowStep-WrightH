@@ -3,21 +3,26 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
-    public bool HasKeycard {  get;  set; }
+    public bool HasKeycard { get; set; }
 
 
     public bool isHacking;
     public int detectCount;
     private float alertLevel;
+    private Image fadeImage;
+
+    [SerializeField] private float fadeSpeed = 1.5f;
 
     [SerializeField] private int detectCountMax = 3;
     [SerializeField] private GameObject gameOverScreen;
     [SerializeField] private GameObject levelEndScreen;
     [SerializeField] private TMP_Text alertLevelText;
+    [SerializeField] private GameObject fadeScreen;
 
     // Start is called before the first frame update
     private void Awake()
@@ -36,6 +41,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         detectCount = 0;
+        fadeImage = fadeScreen.GetComponent<Image>();
     }
 
     // Update is called once per frame
@@ -76,7 +82,7 @@ public class GameManager : MonoBehaviour
         }
         foreach (var enemy in FindObjectsOfType<EnemyAI>())
         {
-            enemy.IncreaseAlert(detectCount + 1);
+            enemy.IncreaseAlert(detectCount);
         }
         UpdateUI();
     }
@@ -90,7 +96,7 @@ public class GameManager : MonoBehaviour
     {
         PlayerMovement.canMove = false;
         levelEndScreen.SetActive(true);
-        Time.timeScale = 0f;
+        Time.timeScale = 0.1f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
@@ -99,7 +105,7 @@ public class GameManager : MonoBehaviour
     {
         PlayerMovement.canMove = false;
         gameOverScreen.SetActive(true);
-        Time.timeScale = 0f;
+        Time.timeScale = 0.1f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
@@ -108,7 +114,27 @@ public class GameManager : MonoBehaviour
     {
         detectCount = 0;
         levelEndScreen.SetActive(false);
+        StartCoroutine(FadeOut());
+        //StartCoroutine(FadeIn());
         HasKeycard = false;
+        Time.timeScale = 1f;
+        PlayerMovement.canMove = true;
+        UpdateUI();
+    }
+
+    private void SwitchScene()
+    {
+        int currentScene = SceneManager.GetActiveScene().buildIndex;
+
+        if (currentScene < 3)
+        {
+            SceneManager.LoadScene(currentScene + 1);
+        }
+        if (currentScene == 3)
+        {
+            SceneManager.LoadScene(0);
+        }
+        StartCoroutine(FadeIn());
 
     }
 
@@ -120,11 +146,39 @@ public class GameManager : MonoBehaviour
 
     public void OnRetryPress()
     {
+        Debug.Log("RetryButtonPress");
         gameOverScreen.SetActive(false);
-        detectCount = 0;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        detectCount = 0;
         Time.timeScale = 1f;
         PlayerMovement.canMove = true;
         UpdateUI();
+    }
+
+    public IEnumerator FadeIn()
+    {
+        float targetAlpha = 0.0f;
+        while (Mathf.Abs(fadeImage.color.a - targetAlpha) > 0.01f)
+        {
+
+            float newAlpha = Mathf.Lerp(fadeImage.color.a, targetAlpha, fadeSpeed * Time.deltaTime);
+
+            fadeImage.color = new Color(fadeImage.color.r, fadeImage.color.g, fadeImage.color.b, newAlpha);
+            yield return null;
+        }
+        SwitchScene();
+        fadeImage.enabled = false;
+    }
+
+    public IEnumerator FadeOut()
+    {
+        fadeImage.enabled = true;  
+        float targetAlpha = 1.0f; 
+        while (Mathf.Abs(fadeImage.color.a - targetAlpha) > 0.01f)
+        {
+            float newAlpha = Mathf.Lerp(fadeImage.color.a, targetAlpha, fadeSpeed * Time.deltaTime);
+            fadeImage.color = new Color(fadeImage.color.r, fadeImage.color.g, fadeImage.color.b, newAlpha);
+            yield return null;
+        }
     }
 }

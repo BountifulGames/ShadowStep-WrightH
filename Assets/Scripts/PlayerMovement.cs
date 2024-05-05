@@ -20,10 +20,10 @@ public class PlayerMovement : MonoBehaviour
     private CharacterController characterController;
     private float cameraVert = 0f;
     private Animator animator;
-    private bool isGrounded;
     private float gravity = -9.8f;
     private float vertVelocity = 0;
     private bool isCrouched = false;
+    private bool isSprinting = false;
 
     public static bool canMove = true;
 
@@ -83,22 +83,23 @@ public class PlayerMovement : MonoBehaviour
             animator.SetBool("isCrouchWalking", isWalking);
         }
 
-        if (characterController.isGrounded && !isCrouched)
-        {
-            if (Input.GetButtonDown("Jump"))
-            {
-                animator.SetTrigger("Jump");
-            }
-            else
-            {
-                vertVelocity = -2f;
-            }
-        }
-        else
-        {
-            vertVelocity += gravity * Time.deltaTime;
-        }
+        //if (characterController.isGrounded && !isCrouched)
+        //{
+        //    if (Input.GetButtonDown("Jump"))
+        //    {
+        //        animator.SetTrigger("Jump");
+        //    }
+        //    else
+        //    {
+        //        vertVelocity = -2f;
+        //    }
+        //}
+        //else
+        //{
+        //    vertVelocity += gravity * Time.deltaTime;
+        //}
 
+        vertVelocity += gravity * Time.deltaTime;
         Vector3 speed = new Vector3(horSpeed, vertVelocity, vertSpeed);
         speed = transform.rotation * speed;
 
@@ -121,12 +122,14 @@ public class PlayerMovement : MonoBehaviour
 
     private void CheckSprint()
     {
-        if (Input.GetKeyDown(KeyCode.LeftShift))
+        if (Input.GetKeyDown(KeyCode.LeftShift) && !isSprinting)
         {
+            isSprinting = true;
             animator.SetBool("isSprinting", true);
             moveSpeed = moveSpeed * 2;
-        } else if (Input.GetKeyUp(KeyCode.LeftShift))
+        } else if (Input.GetKeyUp(KeyCode.LeftShift) && isSprinting)
         {
+            isSprinting = false;
             animator.SetBool("isSprinting", false);
             moveSpeed = moveSpeed / 2;
         }
@@ -142,7 +145,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void CheckCrouch()
     {
-        if (Input.GetKeyDown(KeyCode.LeftControl))
+        if (Input.GetKeyDown(KeyCode.LeftControl) && !isSprinting)
         {
             isCrouched = !isCrouched;
             if (isCrouched)
@@ -179,29 +182,4 @@ public class PlayerMovement : MonoBehaviour
         characterController.Move(speed * Time.deltaTime);
     }
 
-    private void OnCollisionEnter(Collision other)
-    {
-        if (other.gameObject.CompareTag("Ground"))
-        {
-            Debug.Log("Touch Grass");
-            isGrounded = true;
-        }
-    }
-
-    private void OnCollisionExit(Collision other)
-    {
-        if (other.gameObject.CompareTag("Ground"))
-        {
-            Debug.Log("Jumping");
-            isGrounded = false;
-        }
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Deathplane"))
-        {
-            transform.position = new Vector3(0, 0.26f, 0);
-        }
-    }
 }

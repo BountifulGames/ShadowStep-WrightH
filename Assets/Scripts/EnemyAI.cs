@@ -12,15 +12,13 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private float chaseSpeed = 5.0f;
     [SerializeField] private float patrolSpeed = 2.0f;
     [SerializeField] private float sightDistance = 10.0f;
-    [SerializeField] private float fieldOfViewAngle = 90f;
-    [SerializeField] private float detectionRate = 20f;
+    [SerializeField] private float fieldOfViewAngle = 130f;
+    [SerializeField] private float detectionRate = 45f;
     [SerializeField] private float decreaseRate = 5f;
-    [SerializeField] private float raycastInterval = 0.01f;
     [SerializeField] private Transform playerPos;
 
     private float detectionMeter = 0f;
     private float detectionMax = 100f;
-    private int detectCount = 0;
     private float lastDetectionMeterValue = -1;
     private Animator animator;
     [SerializeField] private bool isWalking;
@@ -33,8 +31,10 @@ public class EnemyAI : MonoBehaviour
     private int currentWaypoint = 0;
     private bool isInvestigating = false;
     [SerializeField] private CharacterController characterController;
+
+    Coroutine waitCoroutine;
     
-    private enum EnemyState { Patrolling, Chasing, Investigating }
+    private enum EnemyState { Patrolling, Chasing, Investigating, Waiting }
     private EnemyState enemyState;
 
     private void Awake()
@@ -74,7 +74,7 @@ public class EnemyAI : MonoBehaviour
         }
 
         //Debug.Log("Current Waypoint: " + currentWaypoint +
-            //"\nDistance to waypoint: " + Vector3.Distance(transform.position, waypoints[currentWaypoint].position));
+        //    "\nDistance to waypoint: " + Vector3.Distance(transform.position, waypoints[currentWaypoint].position));
 
     }
 
@@ -83,6 +83,10 @@ public class EnemyAI : MonoBehaviour
         switch (enemyState)
         {
             case EnemyState.Patrolling:
+                if (waitCoroutine != null)
+                {
+                    StopCoroutine(waitCoroutine);
+                }
                 Patrol();
                 break;
             case EnemyState.Chasing:
@@ -91,27 +95,58 @@ public class EnemyAI : MonoBehaviour
             case EnemyState.Investigating:
                 Investigate();
                 break;
+            case EnemyState.Waiting:
+                if (waitCoroutine == null)
+                {
+                    waitCoroutine = StartCoroutine(WaitAtWaypoint());
+                }
+                break;
         }
     }
 
     private void Patrol()
     {
-        //Debug.Log("Patroling");
-        enemyController.MoveTo(waypoints[currentWaypoint].position, patrolSpeed);
-        isWalking = true;
-        if (Vector3.Distance(gameObject.transform.position, waypoints[currentWaypoint].position) < 1.0f)
+        if (enemyState == EnemyState.Patrolling)
         {
-            isWalking = false;
-
-            currentWaypoint = (currentWaypoint + 1) % waypoints.Length;
+            if (Vector3.Distance(transform.position, waypoints[currentWaypoint].position) > 1.0f)
+            {
+                if (!isWalking)
+                {
+                    isWalking = true;
+                    animator.SetBool("isWalking", true);
+                }
+                enemyController.MoveTo(waypoints[currentWaypoint].position, patrolSpeed);
+            }
+            else if (isWalking)
+            {
+                // Arrived at waypoint, transition to waiting state
+                isWalking = false;
+                animator.SetBool("isWalking", false);
+                enemyState = EnemyState.Waiting;  // Transition to waiting state
+            }
+            
         }
+    }
 
+    private IEnumerator WaitAtWaypoint()
+    {
+        yield return new WaitForSeconds(3);  
+        currentWaypoint = (currentWaypoint + 1) % waypoints.Length;
+        isWalking = true;
+        animator.SetBool("isWalking", true);
+        enemyState = EnemyState.Patrolling;  
+        waitCoroutine = null;
     }
 
     private void Chase()
     {
         StopCoroutine(PerformInvestigation());
         //Debug.Log("Chasing");
+        if (!isWalking)
+        {
+            isWalking = true;
+            animator.SetBool("isWalking", true);
+        }
         enemyController.MoveTo(playerPos.position, chaseSpeed);
         if (Vector3.Distance(gameObject.transform.position, playerPos.position) > sightDistance || !CanSeePlayer())
         {
@@ -136,6 +171,7 @@ public class EnemyAI : MonoBehaviour
             //Debug.Log("Beginning investigation");
             isWalking = false;
             StartCoroutine(PerformInvestigation());
+            isChasing = false;
         }
     }
 
@@ -223,18 +259,23 @@ public class EnemyAI : MonoBehaviour
         switch (alertLevel)
         {
             case 1:
+                Debug.Log("Alert Level 1");
                 sightDistance = 5.0f;  
                 chaseSpeed = 3.0f;
-                detectionRate = 1.5f;
+                detectionRate = 45f;
                 break;
             case 2:
+                Debug.Log("Alert Level 2");
+
                 sightDistance = 10.0f;  
                 chaseSpeed = 4.0f;
-                detectionRate = 2.0f;
+                detectionRate = 65f;
                 break;
             case 3:
+                Debug.Log("Alert Level 3");
+
                 sightDistance = 15.0f;
-                detectionRate = 2.5f;
+                detectionRate = 75f;
                 break;
             default:
                 Debug.Log("Unsupported alert level!");
@@ -263,7 +304,7 @@ public class EnemyAI : MonoBehaviour
     {
         isInvestigating = true;
 
-        yield return new WaitForSeconds(5);
+        yield return new WaitForSeconds(8);
 
         isInvestigating = false;
         enemyState = EnemyState.Patrolling;
