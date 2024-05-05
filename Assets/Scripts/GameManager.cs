@@ -16,7 +16,7 @@ public class GameManager : MonoBehaviour
     private float alertLevel;
     private Image fadeImage;
 
-    [SerializeField] private float fadeSpeed = 1.5f;
+    [SerializeField] private float fadeSpeed = 5f;
 
     [SerializeField] private int detectCountMax = 3;
     [SerializeField] private GameObject gameOverScreen;
@@ -40,6 +40,7 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        UpdateUI();
         detectCount = 0;
         fadeImage = fadeScreen.GetComponent<Image>();
     }
@@ -114,12 +115,18 @@ public class GameManager : MonoBehaviour
     {
         detectCount = 0;
         levelEndScreen.SetActive(false);
-        StartCoroutine(FadeOut());
+        StartCoroutine(FadeOutAndLoadNext());
         //StartCoroutine(FadeIn());
         HasKeycard = false;
         Time.timeScale = 1f;
         PlayerMovement.canMove = true;
         UpdateUI();
+    }
+
+    private IEnumerator FadeOutAndLoadNext()
+    {
+        yield return StartCoroutine(FadeOut());  
+        SwitchScene();  
     }
 
     private void SwitchScene()
@@ -140,19 +147,22 @@ public class GameManager : MonoBehaviour
 
     public void UpdateUI()
     {
-        alertLevel = 100 / detectCountMax * detectCount;
-        alertLevelText.text = ("Alert Level: " + alertLevel) + "%";
+        alertLevel = detectCount + 1;
+        alertLevelText.text = ("Alert Level: " + alertLevel);
     }
 
     public void OnRetryPress()
     {
         Debug.Log("RetryButtonPress");
-        gameOverScreen.SetActive(false);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        detectCount = 0;
         Time.timeScale = 1f;
+        gameOverScreen.SetActive(false);
+        detectCount = 0;
+
         PlayerMovement.canMove = true;
+
         UpdateUI();
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+
     }
 
     public IEnumerator FadeIn()
