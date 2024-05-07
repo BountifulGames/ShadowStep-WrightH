@@ -40,6 +40,10 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        foreach (var enemy in FindObjectsOfType<EnemyAI>())
+        {
+            enemy.IncreaseAlert(detectCount);
+        }
         UpdateUI();
         detectCount = 0;
         fadeImage = fadeScreen.GetComponent<Image>();
@@ -119,7 +123,10 @@ public class GameManager : MonoBehaviour
         StartCoroutine(FadeOutAndLoadNext());
         //StartCoroutine(FadeIn());
         HasKeycard = false;
-
+        foreach (var enemy in FindObjectsOfType<EnemyAI>())
+        {
+            enemy.IncreaseAlert(1);
+        }
         PlayerMovement.canMove = true;
         UpdateUI();
     }
@@ -155,9 +162,10 @@ public class GameManager : MonoBehaviour
     public void OnRetryPress()
     {
         Debug.Log("RetryButtonPress");
+        detectCount = 0;
+
         Time.timeScale = 1f;
         gameOverScreen.SetActive(false);
-        detectCount = 0;
 
         PlayerMovement.canMove = true;
 

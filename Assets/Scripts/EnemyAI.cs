@@ -262,20 +262,20 @@ public class EnemyAI : MonoBehaviour
                 Debug.Log("Alert Level 1");
                 sightDistance = 5.0f;  
                 chaseSpeed = 3.0f;
-                detectionRate = 45f;
+                detectionRate = 65f;
                 break;
             case 2:
                 Debug.Log("Alert Level 2");
-
-                sightDistance = 10.0f;  
+                sightDistance = 10.0f;
+                patrolSpeed = 3.0f;
                 chaseSpeed = 4.0f;
-                detectionRate = 65f;
+                detectionRate = 85f;
                 break;
             case 3:
                 Debug.Log("Alert Level 3");
-
+                patrolSpeed = 3.5f;
                 sightDistance = 15.0f;
-                detectionRate = 75f;
+                detectionRate = 100f;
                 break;
             default:
                 Debug.Log("Unsupported alert level!");
