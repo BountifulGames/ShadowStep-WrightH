@@ -114,11 +114,12 @@ public class GameManager : MonoBehaviour
     public void OnNextLevelButton()
     {
         detectCount = 0;
+        Time.timeScale = 0.1f;
         levelEndScreen.SetActive(false);
         StartCoroutine(FadeOutAndLoadNext());
         //StartCoroutine(FadeIn());
         HasKeycard = false;
-        Time.timeScale = 1f;
+
         PlayerMovement.canMove = true;
         UpdateUI();
     }
@@ -167,27 +168,24 @@ public class GameManager : MonoBehaviour
 
     public IEnumerator FadeIn()
     {
+        fadeImage.enabled = true;
+        fadeImage.color = new Color(fadeImage.color.r, fadeImage.color.g, fadeImage.color.b, 1);
         float targetAlpha = 0.0f;
         while (Mathf.Abs(fadeImage.color.a - targetAlpha) > 0.01f)
         {
-
-            float newAlpha = Mathf.Lerp(fadeImage.color.a, targetAlpha, fadeSpeed * Time.deltaTime);
-
-            fadeImage.color = new Color(fadeImage.color.r, fadeImage.color.g, fadeImage.color.b, newAlpha);
+            fadeImage.color = new Color(fadeImage.color.r, fadeImage.color.g, fadeImage.color.b, Mathf.Lerp(fadeImage.color.a, targetAlpha, fadeSpeed * Time.deltaTime));
             yield return null;
         }
-        SwitchScene();
         fadeImage.enabled = false;
     }
 
     public IEnumerator FadeOut()
     {
-        fadeImage.enabled = true;  
-        float targetAlpha = 1.0f; 
+        fadeImage.enabled = true;
+        float targetAlpha = 1.0f;
         while (Mathf.Abs(fadeImage.color.a - targetAlpha) > 0.01f)
         {
-            float newAlpha = Mathf.Lerp(fadeImage.color.a, targetAlpha, fadeSpeed * Time.deltaTime);
-            fadeImage.color = new Color(fadeImage.color.r, fadeImage.color.g, fadeImage.color.b, newAlpha);
+            fadeImage.color = new Color(fadeImage.color.r, fadeImage.color.g, fadeImage.color.b, Mathf.Lerp(fadeImage.color.a, targetAlpha, fadeSpeed * Time.deltaTime));
             yield return null;
         }
     }
