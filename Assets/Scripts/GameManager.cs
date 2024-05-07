@@ -38,6 +38,17 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Reset or initialize state here
+        ResetGameState();
+    }
+
     void Start()
     {
         foreach (var enemy in FindObjectsOfType<EnemyAI>())
@@ -52,10 +63,23 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
     }
 
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
     // Update is called once per frame
     void Update()
     {
 
+    }
+
+    void ResetGameState()
+    {
+        detectCount = 0;
+        UpdateUI();
+        PlayerMovement.canMove = true;
+        gameOverScreen.SetActive(false);
+        Time.timeScale = 1f;
     }
 
     public void StartHacking()
