@@ -44,9 +44,12 @@ public class GameManager : MonoBehaviour
         {
             enemy.IncreaseAlert(detectCount);
         }
-        UpdateUI();
         detectCount = 0;
+        
+        UpdateUI();
         fadeImage = fadeScreen.GetComponent<Image>();
+        gameOverScreen.SetActive(false);
+        Time.timeScale = 1f;
     }
 
     // Update is called once per frame
@@ -58,14 +61,12 @@ public class GameManager : MonoBehaviour
     public void StartHacking()
     {
         isHacking = true;
-        // Optionally disable player movement
         PlayerMovement.canMove = false;
     }
 
     public void StopHacking()
     {
         isHacking = false;
-        // Optionally enable player movement
         PlayerMovement.canMove = true;
     }
 
@@ -118,9 +119,9 @@ public class GameManager : MonoBehaviour
     public void OnNextLevelButton()
     {
         detectCount = 0;
-        Time.timeScale = 0.1f;
         levelEndScreen.SetActive(false);
         StartCoroutine(FadeOutAndLoadNext());
+        Time.timeScale = 1f;
         //StartCoroutine(FadeIn());
         HasKeycard = false;
         foreach (var enemy in FindObjectsOfType<EnemyAI>())
@@ -157,6 +158,10 @@ public class GameManager : MonoBehaviour
     {
         alertLevel = detectCount + 1;
         alertLevelText.text = ("Alert Level: " + alertLevel);
+        if (detectCount < detectCountMax)
+        {
+            gameOverScreen.SetActive(false);
+        }
     }
 
     public void OnRetryPress()
@@ -165,23 +170,24 @@ public class GameManager : MonoBehaviour
         detectCount = 0;
 
         Time.timeScale = 1f;
-        gameOverScreen.SetActive(false);
 
         PlayerMovement.canMove = true;
 
-        UpdateUI();
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        gameOverScreen.SetActive(false);
+
+        UpdateUI();
 
     }
 
     public IEnumerator FadeIn()
     {
         fadeImage.enabled = true;
-        fadeImage.color = new Color(fadeImage.color.r, fadeImage.color.g, fadeImage.color.b, 1);
-        float targetAlpha = 0.0f;
-        while (Mathf.Abs(fadeImage.color.a - targetAlpha) > 0.01f)
+        fadeImage.color = new Color(fadeImage.color.r, fadeImage.color.g, fadeImage.color.b, 1); 
+
+        while (fadeImage.color.a > 0.01f)
         {
-            fadeImage.color = new Color(fadeImage.color.r, fadeImage.color.g, fadeImage.color.b, Mathf.Lerp(fadeImage.color.a, targetAlpha, fadeSpeed * Time.deltaTime));
+            fadeImage.color = new Color(fadeImage.color.r, fadeImage.color.g, fadeImage.color.b, Mathf.MoveTowards(fadeImage.color.a, 0, fadeSpeed * Time.deltaTime));
             yield return null;
         }
         fadeImage.enabled = false;
@@ -190,10 +196,11 @@ public class GameManager : MonoBehaviour
     public IEnumerator FadeOut()
     {
         fadeImage.enabled = true;
-        float targetAlpha = 1.0f;
-        while (Mathf.Abs(fadeImage.color.a - targetAlpha) > 0.01f)
+        fadeImage.color = new Color(fadeImage.color.r, fadeImage.color.g, fadeImage.color.b, 0); 
+
+        while (fadeImage.color.a < 0.99f)
         {
-            fadeImage.color = new Color(fadeImage.color.r, fadeImage.color.g, fadeImage.color.b, Mathf.Lerp(fadeImage.color.a, targetAlpha, fadeSpeed * Time.deltaTime));
+            fadeImage.color = new Color(fadeImage.color.r, fadeImage.color.g, fadeImage.color.b, Mathf.MoveTowards(fadeImage.color.a, 1, fadeSpeed * Time.deltaTime));
             yield return null;
         }
     }
